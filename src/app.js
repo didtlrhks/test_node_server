@@ -1,32 +1,65 @@
 const express = require('express');
 const cors = require('cors');
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpecs = require('./config/swagger');
 require('dotenv').config();
-
-const userRoutes = require('./routes/userRoutes');
+const db = require('./config/db');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// 미들웨어
+// 미들웨어 설정
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Swagger 설정
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: '사용자 API',
+      version: '1.0.0',
+      description: '사용자 관리를 위한 API',
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000',
+        description: '개발 서버',
+      },
+    ],
+  },
+  apis: ['./src/routes/*.js'], // API 라우트 파일 경로
+};
 
-// 라우트
-app.use('/api/users', userRoutes);
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+
+// Swagger UI 설정
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 기본 라우트
 app.get('/', (req, res) => {
-  res.send('사용자 관리 API에 오신 것을 환영합니다! API 문서는 <a href="/api-docs">여기</a>에서 확인하세요.');
+  res.send('서버가 실행 중입니다!');
 });
 
+// 데이터베이스 연결 테스트
+app.get('/test-db', async (req, res) => {
+  try {
+    const [rows] = await db.execute('SELECT 1 as test');
+    res.json({ message: '데이터베이스 연결 성공', data: rows });
+  } catch (error) {
+    console.error('데이터베이스 연결 오류:', error);
+    res.status(500).json({ error: '데이터베이스 연결 실패' });
+  }
+});
+
+// 라우터 가져오기
+const usersRouter = require('./routes/users');
+
+// 라우터 설정
+app.use('/api/users', usersRouter);
+
 // 서버 시작
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`서버가 http://localhost:${PORT} 에서 실행 중입니다.`);
-  console.log(`Swagger 문서는 http://localhost:${PORT}/api-docs 에서 확인할 수 있습니다.`);
+  console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
 }); 
