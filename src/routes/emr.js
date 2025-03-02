@@ -47,4 +47,34 @@ router.get('/data', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/emr/available-patients:
+ *   get:
+ *     summary: 사용자와 연결되지 않은 환자 ID 목록 조회
+ *     tags: [EMR]
+ *     responses:
+ *       200:
+ *         description: 사용 가능한 환자 ID 목록
+ *       500:
+ *         description: 서버 오류
+ */
+router.get('/available-patients', async (req, res) => {
+  try {
+    // 사용자와 연결되지 않은 환자 ID 조회
+    const [rows] = await db.execute(`
+      SELECT e.id, e.patient_name, e.patient_id, e.email
+      FROM emr_data e
+      LEFT JOIN users u ON e.patient_id = u.patient_id
+      WHERE u.id IS NULL
+      ORDER BY e.id ASC
+    `);
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('사용 가능한 환자 ID 조회 오류:', error);
+    res.status(500).json({ error: '사용 가능한 환자 ID를 조회하는 중 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router;

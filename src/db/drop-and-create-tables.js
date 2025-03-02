@@ -23,20 +23,7 @@ async function dropAndCreateTables() {
     // 외래 키 제약 조건 다시 활성화
     await db.query('SET FOREIGN_KEY_CHECKS = 1');
     
-    // Users 테이블 생성
-    console.log('Users 테이블 생성 중...');
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(100) NOT NULL,
-        email VARCHAR(100) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('Users 테이블이 생성되었습니다.');
-    
-    // EMR 데이터 테이블 생성
+    // EMR 데이터 테이블 생성 (먼저 생성해야 외래 키 참조 가능)
     console.log('EMR 데이터 테이블 생성 중...');
     await db.query(`
       CREATE TABLE IF NOT EXISTS emr_data (
@@ -88,6 +75,21 @@ async function dropAndCreateTables() {
       )
     `);
     console.log('EMR 데이터 테이블이 생성되었습니다.');
+    
+    // Users 테이블 생성
+    console.log('Users 테이블 생성 중...');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(100) NOT NULL,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        patient_id VARCHAR(50) UNIQUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (patient_id) REFERENCES emr_data(patient_id) ON DELETE SET NULL
+      )
+    `);
+    console.log('Users 테이블이 생성되었습니다.');
     
     console.log('테이블 삭제 및 재생성 완료!');
   } catch (error) {
