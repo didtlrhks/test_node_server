@@ -23,7 +23,13 @@ function generateAuthCode(length = 6) {
 // EMR 데이터 조회
 async function getEmrData(patientId = null) {
   try {
-    let query = 'SELECT * FROM emr_data';
+    let query = `
+      SELECT id, patient_name, patient_id, email, phone, birth_date, gender,
+             ast, alt, ggt, medical_record, prescription_record, waist_circumference,
+             bmi, glucose, hba1c, triglyceride, ldl, hdl, uric_acid,
+             sbp, dbp, gfr, plt, created_at, last_updated
+      FROM emr_data
+    `;
     const params = [];
     
     if (patientId) {
@@ -31,7 +37,8 @@ async function getEmrData(patientId = null) {
       params.push(patientId);
     }
     
-    query += ' ORDER BY created_at DESC';
+    // ID 순서대로 정렬
+    query += ' ORDER BY id ASC';
     
     const [rows] = await db.execute(query, params);
     return rows;

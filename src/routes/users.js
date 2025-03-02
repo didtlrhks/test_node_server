@@ -130,4 +130,32 @@ router.post('/', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/users:
+ *   get:
+ *     summary: 모든 사용자 조회
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: 사용자 목록
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       500:
+ *         description: 서버 오류
+ */
+router.get('/', async (req, res) => {
+  try {
+    const [users] = await db.execute('SELECT id, username, email, created_at FROM users');
+    res.json(users);
+  } catch (error) {
+    console.error('사용자 조회 오류:', error);
+    res.status(500).json({ error: '사용자를 조회하는 중 오류가 발생했습니다.' });
+  }
+});
+
 module.exports = router; 

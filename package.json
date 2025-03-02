@@ -6,9 +6,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/app.js",
     "dev": "npx nodemon src/app.js",
-    "init-db": "node src/db/init-db.js",
-    "create-tables": "node src/db/create-tables.js",
-    "insert-dummy-emr": "node src/db/insert-dummy-emr-data.js"
+    "drop-and-create": "node src/db/drop-and-create-tables.js",
+    "insert-dummy-emr": "node src/db/insert-dummy-emr-data.js",
+    "add-patient": "node src/db/add-single-patient.js",
+    "create-user": "node src/create-user.js",
+    "recreate-and-insert": "npm run drop-and-create && npm run insert-dummy-emr"
   },
   "keywords": [],
   "author": "",

@@ -20,30 +20,6 @@ async function createUsersTable() {
   }
 }
 
-// EMR 테이블 생성
-async function createEmrTable() {
-  try {
-    await db.query(`
-      CREATE TABLE IF NOT EXISTS emr (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        patient_id INT NOT NULL,
-        doctor_id INT NOT NULL,
-        visit_date DATETIME NOT NULL,
-        symptoms TEXT,
-        diagnosis TEXT,
-        prescription TEXT,
-        notes TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (patient_id) REFERENCES users(id)
-      )
-    `);
-    console.log('EMR 테이블이 생성되었습니다.');
-    return true;
-  } catch (error) {
-    console.error('EMR 테이블 생성 오류:', error);
-    return false;
-  }
-}
 
 // 모든 함수를 순차적으로 실행하는 메인 함수
 async function initializeDatabase() {
