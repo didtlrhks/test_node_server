@@ -5,7 +5,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/app.js",
-    "dev": "npx nodemon src/app.js"
+    "dev": "npx nodemon src/app.js",
+    "init-db": "node src/db/init-db.js",
+    "create-tables": "node src/db/create-tables.js",
+    "insert-dummy-emr": "node src/db/insert-dummy-emr-data.js"
   },
   "keywords": [],
   "author": "",
@@ -17,11 +20,12 @@
     "mongodb": "^6.13.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.12.0",
+    "nodemailer": "^6.10.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
   },
-  "description": ""
+  "description": "DTX Backend Server"
 }

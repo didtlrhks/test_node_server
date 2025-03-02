@@ -1,15 +1,4 @@
-const db = require('./config/db');
-
-async function testDatabaseConnection() {
-  try {
-    const [rows] = await db.execute('SELECT 1 as test');
-    console.log('데이터베이스 연결 성공:', rows);
-    return true;
-  } catch (error) {
-    console.error('데이터베이스 연결 오류:', error);
-    return false;
-  }
-}
+const db = require('../config/db');
 
 // users 테이블 생성
 async function createUsersTable() {
@@ -58,18 +47,19 @@ async function createEmrTable() {
 
 // 모든 함수를 순차적으로 실행하는 메인 함수
 async function initializeDatabase() {
-  const isConnected = await testDatabaseConnection();
-  
-  if (isConnected) {
+  try {
+    console.log('데이터베이스 초기화를 시작합니다...');
+    
     await createUsersTable();
     await createEmrTable();
+    
     console.log('데이터베이스 초기화가 완료되었습니다.');
+  } catch (error) {
+    console.error('데이터베이스 초기화 중 오류 발생:', error);
+  } finally {
+    process.exit(0);
   }
-  
-  // 모든 작업이 완료된 후 종료
-  process.exit(0);
 }
 
 // 메인 함수 실행
 initializeDatabase(); 
-createEmrTable(); 

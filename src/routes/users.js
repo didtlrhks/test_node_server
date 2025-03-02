@@ -21,21 +21,23 @@ const db = require('../config/db');
  *           description: 사용자 이름
  *         email:
  *           type: string
- *           description: 이메일 주소
+ *           format: email
+ *           description: 사용자 이메일 주소 (고유값)
  *         password:
  *           type: string
- *           description: 비밀번호
+ *           format: password
+ *           description: 사용자 비밀번호
  *         created_at:
  *           type: string
  *           format: date-time
- *           description: 생성 날짜
+ *           description: 계정 생성 날짜
  */
 
 /**
  * @swagger
  * /api/users:
  *   post:
- *     summary: 새 사용자 추가
+ *     summary: 새 사용자 등록
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -50,10 +52,18 @@ const db = require('../config/db');
  *             properties:
  *               username:
  *                 type: string
+ *                 example: "홍길동"
+ *                 description: 사용자 이름
  *               email:
  *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *                 description: 사용자 이메일 (고유값)
  *               password:
  *                 type: string
+ *                 format: password
+ *                 example: "securePassword123"
+ *                 description: 사용자 비밀번호
  *     responses:
  *       201:
  *         description: 사용자가 성공적으로 생성됨
@@ -64,12 +74,30 @@ const db = require('../config/db');
  *               properties:
  *                 id:
  *                   type: integer
+ *                   example: 1
  *                 message:
  *                   type: string
+ *                   example: "사용자가 성공적으로 생성되었습니다."
  *       400:
  *         description: 잘못된 요청
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "이미 사용 중인 이메일입니다."
  *       500:
  *         description: 서버 오류
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "사용자를 생성하는 중 오류가 발생했습니다."
  */
 router.post('/', async (req, res) => {
   try {
