@@ -39,6 +39,7 @@ async function dropAndCreateTables() {
         ast FLOAT,
         alt FLOAT,
         ggt FLOAT,
+        albumin FLOAT,              /* 알부민 (g/dL) */
         
         /* 진료 및 처방 기록 */
         medical_record TEXT,
@@ -77,14 +78,14 @@ async function dropAndCreateTables() {
     console.log('EMR 데이터 테이블이 생성되었습니다.');
     
     // 진단 상세 정보 테이블 생성
-    await db.query(`
+    await db.execute(`
       CREATE TABLE IF NOT EXISTS diagnosis_details (
         id INT AUTO_INCREMENT PRIMARY KEY,
         patient_id VARCHAR(50) NOT NULL,
         fli_score FLOAT,
         fli_interpretation VARCHAR(50),
-        hsi_score FLOAT,
-        hsi_interpretation VARCHAR(50),
+        fibrosis_score FLOAT,
+        fibrosis_interpretation VARCHAR(50),
         has_diabetes BOOLEAN,
         diagnosis_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -148,6 +149,7 @@ async function dropAndCreateTables() {
         ast FLOAT,
         alt FLOAT,
         ggt FLOAT,
+        albumin FLOAT,              /* 알부민 (g/dL) */
         medical_record TEXT,
         prescription_record TEXT,
         waist_circumference FLOAT,

@@ -3,52 +3,45 @@ const router = express.Router();
 const db = require('../config/db');
 
 // 지방간 지수(FLI) 계산 함수
-function calculateFLI(tg, bmi, ggt, wc) {
-  if (!tg || !bmi || !ggt || !wc) return null;
+function calculateFLI(age, ast, plt, alt) {
+  if (!age || !ast || !plt || !alt) return null;
   
-  const exponent = 0.953 * Math.log(tg) + 
-                  0.139 * bmi + 
-                  0.718 * Math.log(ggt) + 
-                  0.053 * wc - 
-                  15.745;
-  
-  const fli = (Math.exp(exponent) / (1 + Math.exp(exponent))) * 100;
+  // 공식: 연령*AST/(혈소판*ALT^0.5)
+  const fli = (age * ast) / (plt * Math.sqrt(alt));
   return Math.round(fli * 100) / 100;
 }
 
-// 간지방증 지수(HSI) 계산 함수
-function calculateHSI(alt, ast, bmi, gender, hasDiabetes) {
-  if (!alt || !ast || !bmi) return null;
+// 지방간 섬유화 지수 계산 함수
+function calculateFibrosis(age, bmi, hasDiabetes, ast, alt, plt, albumin) {
+  if (!age || !bmi || !ast || !alt || !plt || !albumin) return null;
   
-  let hsi = 8 * (alt / ast) + bmi;
+  // AST/ALT 비율 계산
+  const astAltRatio = ast / alt;
   
-  // 성별에 따른 가중치 추가
-  if (gender === 'F') {
-    hsi += 2;
-  }
-  
-  // 당뇨병 여부에 따른 가중치 추가
-  if (hasDiabetes) {
-    hsi += 2;
-  }
-  
-  return Math.round(hsi * 100) / 100;
+  // 공식: -1.675 + 0.037 * 연령 + 0.094 * 체질량지수 + 1.13 * 당뇨병 + 0.99 * AST/ALT비율 - 0.013 * 혈소판 + 0.66 * 알부민
+  const fibrosis = -1.675 + 
+                   0.037 * age + 
+                   0.094 * bmi + 
+                   1.13 * (hasDiabetes ? 1 : 0) + 
+                   0.99 * astAltRatio - 
+                   0.013 * plt + 
+                   0.66 * albumin;
+                   
+  return Math.round(fibrosis * 100) / 100;
 }
 
 // 지방간 지수 해석 함수
 function interpretFLI(fli) {
   if (fli === null) return '계산 불가';
-  if (fli < 30) return '지방간 가능성 낮음';
-  if (fli >= 60) return '지방간 가능성 높음';
-  return '중간 정도의 지방간 가능성';
+  if (fli < 2) return '지방간 가능성 낮음';
+  return '지방간 가능성 높음';
 }
 
-// 간지방증 지수 해석 함수
-function interpretHSI(hsi) {
-  if (hsi === null) return '계산 불가';
-  if (hsi > 36) return '지방간 가능성 높음';
-  if (hsi < 30) return '지방간 가능성 낮음';
-  return '중간 정도의 지방간 가능성';
+// 지방간 섬유화 지수 해석 함수
+function interpretFibrosis(score) {
+  if (score === null) return '계산 불가';
+  if (score < -1.455) return '섬유화 낮음';
+  return '섬유화 위험 높음';
 }
 
 /**
@@ -130,7 +123,16 @@ router.get('/available-patients', async (req, res) => {
  * @swagger
  * /api/emr/fatty-liver-indices/{patientId}:
  *   get:
- *     summary: 환자의 지방간 지수(FLI)와 간지방증 지수(HSI) 계산
+ *     summary: 환자의 지방간 지수(FLI)와 섬유화 지수 계산
+ *     description: |
+ *       두 가지 지수를 계산합니다:
+ *       1. 지방간 지수(FLI) = 연령*AST/(혈소판*ALT^0.5)
+ *          - < 2: 지방간 가능성 낮음
+ *          - ≥ 2: 지방간 가능성 높음
+ *       
+ *       2. 섬유화 지수 = -1.675 + 0.037*연령 + 0.094*BMI + 1.13*당뇨병 + 0.99*AST/ALT비율 - 0.013*혈소판 + 0.66*알부민
+ *          - < -1.455: 섬유화 낮음
+ *          - ≥ -1.455: 섬유화 위험 높음
  *     tags: [EMR]
  *     parameters:
  *       - in: path
@@ -142,6 +144,62 @@ router.get('/available-patients', async (req, res) => {
  *     responses:
  *       200:
  *         description: 지방간 지수 계산 결과
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 patient_name:
+ *                   type: string
+ *                   description: 환자 이름
+ *                 patient_id:
+ *                   type: string
+ *                   description: 환자 ID
+ *                 indices:
+ *                   type: object
+ *                   properties:
+ *                     fli:
+ *                       type: object
+ *                       properties:
+ *                         value:
+ *                           type: number
+ *                           description: 지방간 지수 값
+ *                         interpretation:
+ *                           type: string
+ *                           description: 지방간 지수 해석
+ *                     fibrosis:
+ *                       type: object
+ *                       properties:
+ *                         value:
+ *                           type: number
+ *                           description: 섬유화 지수 값
+ *                         interpretation:
+ *                           type: string
+ *                           description: 섬유화 지수 해석
+ *                 reference_values:
+ *                   type: object
+ *                   properties:
+ *                     age:
+ *                       type: number
+ *                       description: 연령
+ *                     ast:
+ *                       type: number
+ *                       description: AST 수치
+ *                     alt:
+ *                       type: number
+ *                       description: ALT 수치
+ *                     plt:
+ *                       type: number
+ *                       description: 혈소판 수치
+ *                     bmi:
+ *                       type: number
+ *                       description: 체질량지수
+ *                     albumin:
+ *                       type: number
+ *                       description: 알부민 수치
+ *                     has_diabetes:
+ *                       type: boolean
+ *                       description: 당뇨병 여부
  *       404:
  *         description: 환자를 찾을 수 없음
  *       500:
@@ -151,10 +209,10 @@ router.get('/fatty-liver-indices/:patientId', async (req, res) => {
   try {
     const { patientId } = req.params;
     
-    // 환자의 EMR 데이터 조회
+    // 환자의 EMR 데이터 조회 (albumin 필드 추가)
     const [patients] = await db.execute(`
       SELECT patient_name, patient_id, gender, bmi, triglyceride, ggt, waist_circumference,
-             alt, ast, glucose, hba1c
+             alt, ast, glucose, hba1c, plt, birth_date, albumin
       FROM emr_data
       WHERE patient_id = ?
     `, [patientId]);
@@ -165,23 +223,30 @@ router.get('/fatty-liver-indices/:patientId', async (req, res) => {
     
     const patient = patients[0];
     
+    // 나이 계산
+    const birthDate = new Date(patient.birth_date);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    
     // 당뇨병 여부 판단 (혈당 126mg/dL 이상 또는 HbA1c 6.5% 이상)
     const hasDiabetes = patient.glucose >= 126 || patient.hba1c >= 6.5;
     
     // 지수 계산
     const fli = calculateFLI(
-      patient.triglyceride,
-      patient.bmi,
-      patient.ggt,
-      patient.waist_circumference
+      age,
+      patient.ast,
+      patient.plt,
+      patient.alt
     );
     
-    const hsi = calculateHSI(
-      patient.alt,
-      patient.ast,
+    const fibrosis = calculateFibrosis(
+      age,
       patient.bmi,
-      patient.gender,
-      hasDiabetes
+      hasDiabetes,
+      patient.ast,
+      patient.alt,
+      patient.plt,
+      patient.albumin || 4.0 // albumin 값이 없으면 기본값 4.0 사용
     );
     
     // 결과 반환
@@ -193,18 +258,18 @@ router.get('/fatty-liver-indices/:patientId', async (req, res) => {
           value: fli,
           interpretation: interpretFLI(fli)
         },
-        hsi: {
-          value: hsi,
-          interpretation: interpretHSI(hsi)
+        fibrosis: {
+          value: fibrosis,
+          interpretation: interpretFibrosis(fibrosis)
         }
       },
       reference_values: {
-        triglyceride: patient.triglyceride,
-        bmi: patient.bmi,
-        ggt: patient.ggt,
-        waist_circumference: patient.waist_circumference,
-        alt: patient.alt,
+        age: age,
         ast: patient.ast,
+        alt: patient.alt,
+        plt: patient.plt,
+        bmi: patient.bmi,
+        albumin: patient.albumin || 4.0,
         has_diabetes: hasDiabetes
       }
     });
@@ -219,6 +284,10 @@ router.get('/fatty-liver-indices/:patientId', async (req, res) => {
  * /api/emr/diagnosis/{patientId}:
  *   post:
  *     summary: 환자의 진단 상세 정보 저장
+ *     description: |
+ *       지방간 지수(FLI)와 섬유화 지수를 계산하여 저장합니다.
+ *       - FLI = 연령*AST/(혈소판*ALT^0.5)
+ *       - 섬유화 지수 = -1.675 + 0.037*연령 + 0.094*BMI + 1.13*당뇨병 + 0.99*AST/ALT비율 - 0.013*혈소판 + 0.66*알부민
  *     tags: [EMR]
  *     parameters:
  *       - in: path
@@ -230,6 +299,47 @@ router.get('/fatty-liver-indices/:patientId', async (req, res) => {
  *     responses:
  *       200:
  *         description: 진단 상세 정보가 성공적으로 저장됨
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: 성공 메시지
+ *                 diagnosis:
+ *                   type: object
+ *                   properties:
+ *                     patient_name:
+ *                       type: string
+ *                       description: 환자 이름
+ *                     patient_id:
+ *                       type: string
+ *                       description: 환자 ID
+ *                     indices:
+ *                       type: object
+ *                       properties:
+ *                         fli:
+ *                           type: object
+ *                           properties:
+ *                             value:
+ *                               type: number
+ *                               description: 지방간 지수 값
+ *                             interpretation:
+ *                               type: string
+ *                               description: 지방간 지수 해석
+ *                         fibrosis:
+ *                           type: object
+ *                           properties:
+ *                             value:
+ *                               type: number
+ *                               description: 섬유화 지수 값
+ *                             interpretation:
+ *                               type: string
+ *                               description: 섬유화 지수 해석
+ *                     has_diabetes:
+ *                       type: boolean
+ *                       description: 당뇨병 여부
  *       404:
  *         description: 환자를 찾을 수 없음
  *       500:
@@ -242,7 +352,7 @@ router.post('/diagnosis/:patientId', async (req, res) => {
     // 환자의 EMR 데이터 조회
     const [patients] = await db.execute(`
       SELECT patient_name, patient_id, gender, bmi, triglyceride, ggt, waist_circumference,
-             alt, ast, glucose, hba1c
+             alt, ast, glucose, hba1c, plt, birth_date, albumin
       FROM emr_data
       WHERE patient_id = ?
     `, [patientId]);
@@ -253,36 +363,44 @@ router.post('/diagnosis/:patientId', async (req, res) => {
     
     const patient = patients[0];
     
+    // 나이 계산
+    const birthDate = new Date(patient.birth_date);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    
     // 당뇨병 여부 판단
     const hasDiabetes = patient.glucose >= 126 || patient.hba1c >= 6.5;
     
     // 지수 계산
     const fli = calculateFLI(
-      patient.triglyceride,
-      patient.bmi,
-      patient.ggt,
-      patient.waist_circumference
+      age,
+      patient.ast,
+      patient.plt,
+      patient.alt
     );
     
-    const hsi = calculateHSI(
-      patient.alt,
-      patient.ast,
+    const fibrosis = calculateFibrosis(
+      age,
       patient.bmi,
-      patient.gender,
-      hasDiabetes
+      hasDiabetes,
+      patient.ast,
+      patient.alt,
+      patient.plt,
+      patient.albumin || 4.0
     );
     
     // 진단 상세 정보 저장
     await db.execute(`
       INSERT INTO diagnosis_details (
-        patient_id, fli_score, fli_interpretation, hsi_score, hsi_interpretation, has_diabetes
+        patient_id, fli_score, fli_interpretation, 
+        fibrosis_score, fibrosis_interpretation, has_diabetes
       ) VALUES (?, ?, ?, ?, ?, ?)
     `, [
       patientId,
       fli,
       interpretFLI(fli),
-      hsi,
-      interpretHSI(hsi),
+      fibrosis,
+      interpretFibrosis(fibrosis),
       hasDiabetes
     ]);
     
@@ -296,9 +414,9 @@ router.post('/diagnosis/:patientId', async (req, res) => {
             value: fli,
             interpretation: interpretFLI(fli)
           },
-          hsi: {
-            value: hsi,
-            interpretation: interpretHSI(hsi)
+          fibrosis: {
+            value: fibrosis,
+            interpretation: interpretFibrosis(fibrosis)
           }
         },
         has_diabetes: hasDiabetes
@@ -357,9 +475,9 @@ router.get('/diagnosis/:patientId', async (req, res) => {
           score: d.fli_score,
           interpretation: d.fli_interpretation
         },
-        hsi: {
-          score: d.hsi_score,
-          interpretation: d.hsi_interpretation
+        fibrosis: {
+          score: d.fibrosis_score,
+          interpretation: d.fibrosis_interpretation
         },
         has_diabetes: d.has_diabetes,
         created_at: d.created_at,
