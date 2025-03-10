@@ -46,6 +46,7 @@ async function dropAndCreateTables() {
         prescription_record TEXT,
         
         /* 신체 측정 */
+        weight FLOAT,               /* 체중 (kg) */
         waist_circumference FLOAT,  /* 허리둘레 (cm) */
         bmi FLOAT,                  /* 체질량지수 */
         
@@ -152,6 +153,7 @@ async function dropAndCreateTables() {
         albumin FLOAT,              /* 알부민 (g/dL) */
         medical_record TEXT,
         prescription_record TEXT,
+        weight FLOAT,               /* 체중 (kg) */
         waist_circumference FLOAT,
         bmi FLOAT,
         glucose FLOAT,

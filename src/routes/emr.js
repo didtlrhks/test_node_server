@@ -67,9 +67,9 @@ router.get('/data', async (req, res) => {
     const { patientId } = req.query;
     let query = `
       SELECT id, patient_name, patient_id, email, phone, birth_date, gender,
-             ast, alt, ggt, medical_record, prescription_record, waist_circumference,
-             bmi, glucose, hba1c, triglyceride, ldl, hdl, uric_acid,
-             sbp, dbp, gfr, plt, created_at, last_updated
+             ast, alt, ggt, albumin, medical_record, prescription_record, 
+             weight, waist_circumference, bmi, glucose, hba1c, triglyceride, 
+             ldl, hdl, uric_acid, sbp, dbp, gfr, plt, created_at, last_updated
       FROM emr_data
     `;
     const params = [];
