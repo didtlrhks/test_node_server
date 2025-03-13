@@ -55,10 +55,12 @@ app.get('/test-db', async (req, res) => {
 // 라우터 가져오기
 const usersRouter = require('./routes/users');
 const emrRouter = require('./routes/emr');
+const exerciseRouter = require('./routes/exercise');
 
 // 라우터 설정
 app.use('/api/users', usersRouter);
 app.use('/api/emr', emrRouter);
+app.use('/api/exercise', exerciseRouter);
 
 // 서버 시작
 const PORT = process.env.PORT || 3000;

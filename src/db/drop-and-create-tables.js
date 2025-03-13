@@ -9,7 +9,7 @@ async function dropAndCreateTables() {
     await db.query('SET FOREIGN_KEY_CHECKS = 0');
     
     // 관련 테이블 삭제
-    const tablesToDrop = ['users', 'emr_data', 'diagnosis_details', 'auth_codes', 'verified_codes', 'user_management'];
+    const tablesToDrop = ['users', 'emr_data', 'diagnosis_details', 'auth_codes', 'verified_codes', 'user_management','exercise_records'];
     
     for (const table of tablesToDrop) {
       try {
@@ -172,6 +172,21 @@ async function dropAndCreateTables() {
       )
     `);
     console.log('Users 테이블이 생성되었습니다.');
+    
+    // 운동 기록 테이블 생성
+    console.log('운동 기록 테이블 생성 중...');
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS exercise_records (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        exercise_text TEXT NOT NULL,
+        intensity VARCHAR(20) NOT NULL,
+        exercise_date DATE NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('운동 기록 테이블이 생성되었습니다.');
     
     console.log('테이블 삭제 및 재생성 완료!');
   } catch (error) {
