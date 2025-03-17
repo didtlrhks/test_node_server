@@ -58,6 +58,7 @@ const emrRouter = require('./routes/emr');
 const exerciseRouter = require('./routes/exercise');
 const lunchRouter = require('./routes/lunch');
 const breakfastRouter = require('./routes/breakfast');
+const dinnerRouter = require('./routes/dinner');
 
 // 라우터 설정
 app.use('/api/users', usersRouter);
@@ -65,6 +66,7 @@ app.use('/api/emr', emrRouter);
 app.use('/api/exercise', exerciseRouter);
 app.use('/api/lunch', lunchRouter);
 app.use('/api/breakfast', breakfastRouter);
+app.use('/api/dinner', dinnerRouter);
 
 // 서버 시작
 const PORT = process.env.PORT || 3000;

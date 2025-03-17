@@ -214,6 +214,19 @@ async function dropAndCreateTables() {
     `);
     console.log('아침 식사 기록 테이블이 생성되었습니다.');
     
+    // dinner_records 테이블 생성
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS dinner_records (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        dinner_text VARCHAR(500) NOT NULL,
+        dinner_date DATE NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('저녁 식사 기록 테이블이 생성되었습니다.');
+    
     console.log('테이블 삭제 및 재생성 완료!');
   } catch (error) {
     console.error('테이블 삭제 및 재생성 중 오류 발생:', error);
