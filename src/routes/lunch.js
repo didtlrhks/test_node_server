@@ -216,57 +216,6 @@ router.delete('/:id/user/:userId', async (req, res) => {
 
 /**
  * @swagger
- * /api/lunch/date/{date}/user/{userId}:
- *   get:
- *     summary: 특정 사용자의 특정 날짜 점심 식사 기록 조회
- *     tags: [Lunch]
- *     parameters:
- *       - in: path
- *         name: date
- *         required: true
- *         schema:
- *           type: string
- *           format: date
- *         description: 조회할 날짜 (YYYY-MM-DD)
- *       - in: path
- *         name: userId
- *         required: true
- *         schema:
- *           type: integer
- *         description: 사용자 ID
- *     responses:
- *       200:
- *         description: 특정 날짜의 점심 식사 기록
- *       404:
- *         description: 해당 날짜의 점심 식사 기록을 찾을 수 없음
- *       500:
- *         description: 서버 오류
- */
-router.get('/date/:date/user/:userId', async (req, res) => {
-  try {
-    const date = req.params.date;
-    const userId = req.params.userId;
-    
-    // 특정 날짜의 점심 식사 기록 조회
-    const [records] = await db.execute(`
-      SELECT * FROM lunch_records
-      WHERE lunch_date = ? AND user_id = ?
-      ORDER BY created_at DESC
-    `, [date, userId]);
-    
-    if (records.length === 0) {
-      return res.status(404).json({ message: '해당 날짜의 점심 식사 기록을 찾을 수 없습니다.' });
-    }
-    
-    res.json(records);
-  } catch (error) {
-    console.error('점심 식사 기록 조회 오류:', error);
-    res.status(500).json({ error: '점심 식사 기록을 조회하는 중 오류가 발생했습니다.' });
-  }
-});
-
-/**
- * @swagger
  * /api/lunch/{id}/user/{userId}:
  *   put:
  *     summary: 특정 사용자의 점심 식사 기록 업데이트
