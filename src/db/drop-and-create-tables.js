@@ -240,6 +240,43 @@ async function dropAndCreateTables() {
     `);
     console.log('간식 기록 테이블이 생성되었습니다.');
     
+    // weight_records 테이블 생성
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS weight_records (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        weight FLOAT NOT NULL,
+        weight_date DATE NOT NULL,
+        user_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('체중 기록 테이블이 생성되었습니다.');
+    
+    // daily_review 테이블 생성
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS daily_reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        review_date DATE NOT NULL,
+        hunger_option INT NOT NULL,
+        hunger_text VARCHAR(100) NOT NULL,
+        sleep_option INT NOT NULL,
+        sleep_text VARCHAR(100) NOT NULL,
+        activity_option INT NOT NULL,
+        activity_text VARCHAR(100) NOT NULL,
+        emotion_option INT NOT NULL,
+        emotion_text VARCHAR(100) NOT NULL,
+        alcohol_option INT NOT NULL,
+        alcohol_text VARCHAR(100) NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_review (user_id, review_date)
+      )
+    `);
+    console.log('하루 리뷰 테이블이 생성되었습니다.');
+    
     console.log('테이블 삭제 및 재생성 완료!');
   } catch (error) {
     console.error('테이블 삭제 및 재생성 중 오류 발생:', error);
