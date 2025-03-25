@@ -9,7 +9,7 @@ async function dropAndCreateTables() {
     await db.query('SET FOREIGN_KEY_CHECKS = 0');
     
     // 관련 테이블 삭제
-    const tablesToDrop = ['users', 'emr_data', 'diagnosis_details', 'auth_codes', 'verified_codes', 'user_management','exercise_records', 'lunch_records','breakfast_records','dinner_records','snack_records'];
+    const tablesToDrop = ['users', 'emr_data', 'diagnosis_details', 'auth_codes', 'verified_codes', 'user_management','exercise_records', 'lunch_records','breakfast_records','dinner_records','snack_records','weight_records','daily_reviews'];
     
     for (const table of tablesToDrop) {
       try {
