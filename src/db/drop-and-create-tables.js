@@ -9,7 +9,7 @@ async function dropAndCreateTables() {
     await db.query('SET FOREIGN_KEY_CHECKS = 0');
     
     // 관련 테이블 삭제
-    const tablesToDrop = ['users', 'emr_data', 'diagnosis_details', 'auth_codes', 'verified_codes', 'user_management','exercise_records', 'lunch_records','breakfast_records','dinner_records','snack_records','weight_records','daily_reviews'];
+    const tablesToDrop = ['users', 'emr_data', 'diagnosis_details', 'auth_codes', 'verified_codes', 'user_management','exercise_records', 'lunch_records','breakfast_records','dinner_records','snack_records','weight_records','daily_reviews','daily_archives'];
     
     for (const table of tablesToDrop) {
       try {
@@ -276,6 +276,25 @@ async function dropAndCreateTables() {
       )
     `);
     console.log('하루 리뷰 테이블이 생성되었습니다.');
+    
+    // daily_archives 테이블 생성
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS daily_archives (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        archive_date DATE NOT NULL,
+        user_id INT NOT NULL,
+        breakfast_data TEXT,
+        lunch_data TEXT,
+        dinner_data TEXT,
+        snack_data TEXT,
+        exercise_data TEXT,
+        weight_data TEXT,
+        daily_review_data TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_archive (archive_date, user_id)
+      )
+    `);
+    console.log('일일 아카이브 테이블이 생성되었습니다.');
     
     console.log('테이블 삭제 및 재생성 완료!');
   } catch (error) {

@@ -11,7 +11,8 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  timezone: '+09:00', // 한국 시간대 설정 (UTC+9)
 });
 
 // promise 래퍼를 사용하여 async/await 지원

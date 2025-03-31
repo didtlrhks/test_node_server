@@ -62,6 +62,7 @@ const dinnerRouter = require('./routes/dinner');
 const snackRouter = require('./routes/snack');
 const weightRouter = require('./routes/weight');
 const dailyReviewRouter = require('./routes/dailyReview');
+const archiveRouter = require('./routes/archive');
 
 // 라우터 설정
 app.use('/api/users', usersRouter);
@@ -73,6 +74,7 @@ app.use('/api/dinner', dinnerRouter);
 app.use('/api/snack', snackRouter);
 app.use('/api/weight', weightRouter);
 app.use('/api/daily-review', dailyReviewRouter);
+app.use('/api/archive', archiveRouter);
 
 // 서버 시작
 const PORT = process.env.PORT || 3000;
